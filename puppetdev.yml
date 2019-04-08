@@ -1,0 +1,15 @@
+---
+- name: Sync repo
+  hosts: r10k
+  roles:
+    - { role: puppetdev, role_action: deploy }
+  tags:
+    - sync
+
+- name: Test run
+  hosts: "{{ test_hosts | default('none') }}"
+  become: true
+  roles:
+    - { role: puppetdev, role_action: test }
+  tags:
+    - run

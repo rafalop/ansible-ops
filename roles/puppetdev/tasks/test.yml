@@ -1,0 +1,8 @@
+---
+- name: run puppet
+  puppet:
+    # an *elegent* hack to get user because we don't use sudo properly
+    environment: dev_{{ ansible_env['PWD'] | basename }}
+    puppetmaster: r10k.rc.nectar.org.au
+    no_use_srv_records: True
+    show_diff: True

@@ -1,0 +1,10 @@
+---
+# handlers file for roles/baremetal
+- name: run puppet
+  become: true
+  puppet:
+
+#- name: reboot baremetal
+#  become: true
+#  reboot:
+#    reboot_timeout: 1800

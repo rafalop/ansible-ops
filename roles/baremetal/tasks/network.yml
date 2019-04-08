@@ -1,0 +1,35 @@
+---
+- name: Rename interfaces
+  block:
+    - name: get mgt if name
+      shell: /sbin/ip link show | egrep 'em|eth|e1p1' | grep "state UP" | sed -e 's/.*\(e\(m\|th\|1p\)[0-9]]*\).*/\1/g'
+      register: result
+      changed_when: false
+    - name: set fact
+      set_fact:
+        mgt_if_name: "{{ result.stdout }}"
+    - name: generate udev rules
+      template:
+        src: 70-persistent-net.rules.j2
+        dest: /etc/udev/rules.d/70-persistent-net.rules
+        force: yes
+        backup: yes
+
+- name: Set default interfaces file
+  template:
+    src: interfaces.j2
+    dest: /etc/network/interfaces
+    force: yes
+    backup: yes
+
+- name: Setup resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
+- name: Install ifupdown
+  become: true
+  apt:
+    name: ifupdown
+    state: present
+    update_cache: yes

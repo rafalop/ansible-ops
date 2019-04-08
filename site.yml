@@ -1,0 +1,7 @@
+- name: execute "{{ role }}"
+  hosts: all
+  environment: "{{ proxy_env }}"
+  tasks:
+    - name: including "{{ role }}"
+      include_role:
+        name: "{{ role }}"

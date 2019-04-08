@@ -1,0 +1,9 @@
+---
+- name: Sync repo to dev site
+  synchronize:
+    src: ~/projects/puppet-site-monash/
+    dest: /etc/puppetlabs/code/dev_environments/dev_${USER}
+    delete: yes
+    rsync_opts:
+      - "--no-motd"
+      - "--exclude=.git*"

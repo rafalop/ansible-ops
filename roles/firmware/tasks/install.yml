@@ -1,0 +1,14 @@
+---
+- name: Install dsu block
+  become: true
+  block:
+    - name: Check for dsu
+      command: dpkg -l dell-system-update
+  rescue:
+    - name: Get dsu installer
+      get_url:
+        url: "{{ dsu_download_link }}"
+        dest: /tmp/
+        mode: 0700
+    - name: Install dsu
+      command: "/tmp/{{ dsu_installer }} -q"

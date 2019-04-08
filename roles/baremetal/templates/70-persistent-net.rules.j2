@@ -1,0 +1,15 @@
+{% set counter = namespace({
+    'card_no': 1,
+    'port_no': 1,
+    }) %}
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="{{ ansible_facts[mgt_if_name].macaddress }}", NAME="{{ mgt_if_name }}"
+{% for interface in ansible_interfaces -%}
+{% if ansible_facts[interface].module is defined  and ansible_facts[interface].module is search('mlx|ixgbe') %}
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="{{ ansible_facts[interface].macaddress }}", NAME="p{{counter.card_no}}p{{counter.port_no}}"
+{% set counter.port_no = counter.port_no + 1 %}
+{% if counter.port_no > 2 %}
+{% set counter.port_no = 1 %}
+{% set counter.card_no = counter.card_no + 1 %}
+{% endif %}
+{% endif %}
+{%- endfor %}

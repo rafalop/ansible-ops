@@ -1,0 +1,7 @@
+skip_list:
+  - '306'
+  - '403'
+  - '701'
+parseable: true
+quiet: true
+use_default_rules: true

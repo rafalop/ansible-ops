@@ -1,0 +1,16 @@
+---
+# defaults file for roles/baremetal
+pkg_install: "{{ xenial_pkgs if ansible_distribution_version <= '16.04' else bionic_pkgs }}"
+
+bionic_pkgs:
+  - gpg-agent
+  - puppet-agent
+
+xenial_pkgs:
+  - puppet-agent
+
+puppet_apt_pkg: "{{ 'https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.deb' if ansible_distribution >= 'Ubuntu 16.04' else 'https://apt.puppet.com/puppet5-release-bionic.deb' }}" # noqa 204
+
+puppet_release: "{{ 'puppetlabs-release' if ansible_distribution >= 'Ubuntu 16.04' else 'puppet5-release' }}"
+
+mgt_if_name: "{{ 'e1p1' if ansible_virtualization_role == 'host' else 'eth0' }}"

@@ -1,0 +1,20 @@
+---
+- name: check for puppet
+  block:
+    - name: check dpkg for puppet
+      command: dpkg -l "{{ puppet_release }}"
+
+  rescue:
+    - name: get puppet repo
+      get_url:
+        url: "{{ puppet_apt_pkg }}"
+        dest: /tmp/puppetlabs-release.deb
+
+    - name: install puppet repo
+      command: dpkg -i /tmp/puppetlabs-release.deb
+
+- name: pkg install
+  apt:
+    name: "{{ pkg_install }}"
+    state: present
+    update_cache: yes

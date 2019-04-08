@@ -1,0 +1,31 @@
+# WIP
+- name: remove puppet cert
+  become: true
+  file:
+    path: /etc/puppetlabs/puppet/ssl
+    state: absent
+
+- name: clean cert from puppet master
+  become: false
+  vars:
+    ansible_user:
+  raw: sudo puppet cert clean "{{ ansible_fqdn }}" # noqa 301
+  delegate_to: puppet
+
+- name: setup puppet
+  block:
+    - name: setup puppet
+      puppet:
+      register: result
+
+  rescue:
+    - name: sign puppet cert
+      become: false
+      vars:
+        ansible_user:
+      raw: sudo puppet cert sign "{{ ansible_fqdn }}"
+      when:
+        - result.stdout is search('no certificate found')
+      delegate_to: puppet
+      notify:
+        - run puppet

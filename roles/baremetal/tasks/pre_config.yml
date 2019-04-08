@@ -1,0 +1,31 @@
+---
+- name: configure /etc/environment
+  block:
+    - name: http_proxy
+      lineinfile:
+        path: /etc/environment
+        regexp: '^http_proxy='
+        line: "http_proxy={{ proxy_env.http_proxy }}"
+    - name: https_proxy
+      lineinfile:
+        path: /etc/environment
+        regexp: '^https_proxy='
+        line: "https_proxy={{ proxy_env.https_proxy }}"
+    - name: no_proxy
+      lineinfile:
+        path: /etc/environment
+        regexp: '^no_proxy='
+        line: "no_proxy={{ proxy_env.no_proxy }}"
+
+- name: ensure apt proxy conf
+  copy:
+    dest: /etc/apt/apt.conf.d/01proxy
+    content: |
+      // This file was deployed by Ansible.
+      Acquire::http::proxy "{{ proxy_env.http_proxy }}";
+
+- name: "Set root password"
+  user:
+    name: root
+    password: "{{ root_password | password_hash('sha512', 'secretsalt') }}"
+    update_password: always

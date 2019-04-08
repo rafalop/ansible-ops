@@ -1,0 +1,20 @@
+---
+# reconfigure to run in async
+- name: Install firmware updates block
+  become: true
+  block:
+    - name: Install firmware updates
+      command: "dsu --non-interactive"
+      #async: 45
+      #poll: 0
+      register: return
+      failed_when: "'No Applicable Updates Available' not in return.stdout_lines"
+
+  rescue:
+    - debug:
+        var: return.stdout_lines
+
+    - name: notify reboot handler
+      reboot:
+        reboot_timeout: 3600
+      when: "'Please reboot the system for update(s) to take effect' in return.stdout_lines"

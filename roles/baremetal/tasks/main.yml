@@ -1,0 +1,3 @@
+---
+# tasks file for roles/baremetal
+- include_tasks: "{{ role_action }}.yml"

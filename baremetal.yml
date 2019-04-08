@@ -1,0 +1,57 @@
+---
+- name: Install Ansible Dependencies
+  hosts: all
+  become_method: sudo
+  become: true
+  gather_facts: false
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: install python
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal) # noqa 301
+
+- name: run baremetal role
+  hosts: all
+  become_method: sudo
+  become: true
+  environment: "{{ proxy_env }}"
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Setup network stack
+      include_role:
+        name: baremetal
+      with_items:
+        - pre_config
+        - network
+      loop_control:
+        loop_var: role_action
+      when: "ansible_distribution_version == '18.04'"
+    - name: Update firmware
+      include_role:
+        name: firmware
+      with_items:
+        - install
+        - update
+      loop_control:
+        loop_var: role_action
+      when: ansible_virtualization_role == 'host'
+      tags: firmware
+    - include_role:
+        name: baremetal
+      with_items:
+        - pre_config
+        - install
+        - config
+      loop_control:
+        loop_var: role_action
+      tags: bm
+    - name: Install mlnx
+      include_role:
+        name: firmware
+      vars:
+        role_action: mlnx
+      when:
+        - ansible_facts.ansible_p1p1 is defined
+        - ansible_facts.ansible_p1p1.module is search('mlx')
+      tags: firmware

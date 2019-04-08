@@ -1,0 +1,6 @@
+{% for ns in nameservers -%}
+nameserver {{ ns }}
+{% endfor %}
+{% for sd in searchdomains -%}
+search {{ sd }}
+{% endfor %}

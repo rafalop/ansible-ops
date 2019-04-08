@@ -1,0 +1,6 @@
+---
+
+#reboot module new in ansible 2.7
+- name: firmware reboot
+  reboot:
+    reboot_timeout: 1800

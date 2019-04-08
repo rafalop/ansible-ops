@@ -1,0 +1,3 @@
+[submodule "inventory"]
+	path = inventory
+	url = git@gitlab.erc.monash.edu.au:nectar/monash-inventory.git

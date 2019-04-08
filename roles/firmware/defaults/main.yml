@@ -1,0 +1,5 @@
+---
+# defaults file for roles/dsu
+dsu_download_link: "https://downloads.dell.com/FOLDER04496162M/1/Systems-Management_Application_YH0VX_LN64_1.5.0_A00.BIN"
+dsu_installer: "{{ dsu_download_link.split('/') | last }}"
+
