@@ -1,4 +1,5 @@
-# ansible-ops: Monash eResearch Centre - R@CMON combined Ansible plays
+# ansible-ops
+R@CMON (Monash eResearch Centre) playbooks and roles
 
 ## Quick start
 
