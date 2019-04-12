@@ -27,9 +27,17 @@
     src: resolv.conf.j2
     dest: /etc/resolv.conf
 
-- name: Install ifupdown
-  become: true
-  apt:
-    name: ifupdown
-    state: present
-    update_cache: yes
+- name: Install preferred networkstack
+  block:
+  - name: Install ifupdown
+    become: true
+    apt:
+      name: ifupdown
+      state: present
+      update_cache: yes
+  - name: Purge netplan.io
+    beceom: true
+    apt:
+      name: netplan.io
+      state: absent
+      purge: yes
