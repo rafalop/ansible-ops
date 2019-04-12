@@ -1,0 +1,24 @@
+---
+- name: add puppet conf
+  template:
+    src: puppet.conf.j2
+    dest: /etc/puppetlabs/puppet/puppet.conf
+    force: yes
+
+- name: setup puppet
+  block:
+    - name: setup puppet
+      puppet:
+      register: result
+
+  rescue:
+    - name: sign puppet cert
+      become: false
+      vars:
+        ansible_user:
+      raw: sudo puppet cert sign "{{ ansible_fqdn }}"
+      when:
+        - result.stdout is search('no certificate found')
+      delegate_to: puppet
+      notify:
+        - run puppet
