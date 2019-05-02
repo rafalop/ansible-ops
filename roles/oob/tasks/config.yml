@@ -1,36 +1,46 @@
 ---
-- name: Set PXE boot
-  connection: local
-  redfish_config:
-    category: Systems
-    command: SetBiosAttributes
-    bios_attribute_name: PxeDev2EnDis
-    bios_attribute_value: Enabled
-    baseuri: "{{ redfish.baseuri }}"
-    username: "{{ redfish.user }}"
-    password: "{{ redfish.password }}"
-  register: bios_attr
+- name: Reset iDRAC
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset \
+    --noproxy '*' \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType":"GracefulRestart"}'
 
-- name: schedule bios setting update
-  command: /bin/true
-  notify: Create BIOS configuration job
-  when: bios_attr.changed
+- name: Wait for iDRAC to return
+  delegate_to: "{{ redfish.oob_bastion }}"
+  wait_for:
+    host: "{{ redfish.baseuri }}"
+    port: 443
+    delay: 10
+
+# Doesn't appear to be a redfish api for this.
+- name: Delete job queue
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    racadm -S \
+    -r "{{ redfish.baseuri }}" \
+    -u "{{ redfish.user }}"  \
+    -p "{{ redfish.password }}" \
+    jobqueue delete -i JID_CLEARALL_FORCE
 
 - name: Set ProcVirtualization
   connection: local
   redfish_config:
     category: Systems
     command: SetBiosAttributes
-    bios_attribute_name: ProcVirtualisation
-    bios_attribute_value: Enabled
+    bios_attr_name: ProcVirtualization
+    bios_attr_value: Enabled
     baseuri: "{{ redfish.baseuri }}"
-    username: "{{ redfish.user }}"
+    user: "{{ redfish.user }}"
     password: "{{ redfish.password }}"
   register: bios_attr
+  delegate_to: "{{ redfish.oob_bastion }}"
 
 - name: schedule bios setting update
   command: /bin/true
-  notify: Create BIOS configuration job
+  notify: Create bios config job
   when: bios_attr.changed
 
 - name: Set SriovGlobalEnable
@@ -38,16 +48,17 @@
   redfish_config:
     category: Systems
     command: SetBiosAttributes
-    bios_attribute_name: SriovGlobalEnable
-    bios_attribute_value: Enabled
+    bios_attr_name: SriovGlobalEnable
+    bios_attr_value: Enabled
     baseuri: "{{ redfish.baseuri }}"
-    username: "{{ redfish.user }}"
+    user: "{{ redfish.user }}"
     password: "{{ redfish.password }}"
   register: bios_attr
+  delegate_to: "{{ redfish.oob_bastion }}"
 
 - name: schedule bios setting update
   command: /bin/true
-  notify: Create BIOS configuration job
+  notify: Create bios config job
   when: bios_attr.changed
 
 - name: Set LogicalProc
@@ -55,28 +66,57 @@
   redfish_config:
     category: Systems
     command: SetBiosAttributes
-    bios_attribute_name: LogicalProc
-    bios_attribute_value: Enabled
+    bios_attr_name: LogicalProc
+    bios_attr_value: Enabled
     baseuri: "{{ redfish.baseuri }}"
-    username: "{{ redfish.user }}"
+    user: "{{ redfish.user }}"
     password: "{{ redfish.password }}"
   register: bios_attr
   when: ht|default(True)|bool
+  delegate_to: "{{ redfish.oob_bastion }}"
 
 - name: schedule bios setting update
   command: /bin/true
-  notify: Create BIOS configuration job
+  notify: Create bios config job
   when: bios_attr.changed
 
+- name: Set Performance power profile
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attr_name: EnergyPerformanceBias
+    bios_attr_value: MaxPower
+    baseuri: "{{ redfish.baseuri }}"
+    user: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+  delegate_to: "{{ redfish.oob_bastion }}"
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create bios config job
+  when: bios_attr.changed
 
 - name: flush bios update
   meta: flush_handlers
 
+#- name: reboot system
+#  connection: local
+#  redfish_command:
+#    category: Systems
+#    command: PowerGracefulRestart
+#    baseuri: "{{ redfish.baseuri }}"
+#    user: "{{ redfish.user }}"
+#    username: "{{ redfish.user }}"
+#    password: "{{ redfish.password }}"
+#    userpswd: "{{ redfish.password }}"
+
 - name: reboot system
-  connection: local
-  redfish_config:
-    category: Systems
-    command: PowerReboot
-    baseuri: "{{ redfish.baseuri }}"
-    username: "{{ redfish.user }}"
-    password: "{{ redfish.password }}"
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset \
+    --noproxy '*' \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType":"GracefulRestart"}'
