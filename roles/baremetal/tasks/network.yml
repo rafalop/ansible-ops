@@ -36,7 +36,7 @@
       state: present
       update_cache: yes
   - name: Purge netplan.io
-    beceom: true
+    become: true
     apt:
       name: netplan.io
       state: absent
