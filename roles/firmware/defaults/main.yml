@@ -1,5 +1,8 @@
 ---
 # defaults file for roles/dsu
-dsu_download_link: "https://downloads.dell.com/FOLDER04496162M/1/Systems-Management_Application_YH0VX_LN64_1.5.0_A00.BIN"
+dsu_download_url: "https://downloads.dell.com/FOLDER04496162M/1/Systems-Management_Application_YH0VX_LN64_1.5.0_A00.BIN"
 dsu_installer: "{{ dsu_download_link.split('/') | last }}"
 
+mlnx_ofed_vers: "4.5-1.0.1.0"
+mlnx_ofed_file: "MLNX_OFED_LINUX-{{ mlnx_ofed_vers }}-{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ ansible_architecture }}.tgz"
+mlnx_download_url: "http://www.mellanox.com/downloads/ofed/MLNX_OFED-{{ mlnx_ofed_vers }}/{{ mlnx_ofed_file }}"

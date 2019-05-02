@@ -27,6 +27,7 @@
       loop_control:
         loop_var: role_action
       when: "ansible_distribution_version == '18.04'"
+      tags: network
     - name: Update firmware
       include_role:
         name: firmware
@@ -52,6 +53,6 @@
       vars:
         role_action: mlnx
       when:
-        - ansible_facts.ansible_p1p1 is defined
-        - ansible_facts.ansible_p1p1.module is search('mlx')
-      tags: firmware
+        - ansible_p1p1 is defined
+        - ansible_p1p1.module is search('mlx')
+      tags: mlnx_firmware

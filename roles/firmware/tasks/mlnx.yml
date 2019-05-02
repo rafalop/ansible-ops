@@ -1,1 +1,27 @@
 ---
+- name: Download and install mlnx ofed
+  block:
+    - name: Check mlnx ofed is installed
+      command: dpkg -l libmlx4-1
+
+    - name: Check driver version
+      shell: ethtool -i p1p1 | grep -e '^version' | awk '{print $2}'
+      register: driver_version
+      failed_when: driver_version is version(mlnx_ofed_vers, '<')
+
+  rescue:
+    - name: Download & extract mlnx ofed
+      unarchive:
+        src: "{{ mlnx_download_url }}"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install mlnx ofed
+      become: yes
+      command: ./mlnxofedinstall --add-kernel-support --force --skip-repo --all --without-mlnx-nvme
+      args:
+        chdir: "/tmp/{{ mlnx_ofed_file | splitext | first }}"
+
+    - name: reboot
+      reboot:
+        reboot_timeout: 3600
