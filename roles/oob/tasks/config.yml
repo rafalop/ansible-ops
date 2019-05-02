@@ -1,0 +1,82 @@
+---
+- name: Set PXE boot
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attribute_name: PxeDev2EnDis
+    bios_attribute_value: Enabled
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create BIOS configuration job
+  when: bios_attr.changed
+
+- name: Set ProcVirtualization
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attribute_name: ProcVirtualisation
+    bios_attribute_value: Enabled
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create BIOS configuration job
+  when: bios_attr.changed
+
+- name: Set SriovGlobalEnable
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attribute_name: SriovGlobalEnable
+    bios_attribute_value: Enabled
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create BIOS configuration job
+  when: bios_attr.changed
+
+- name: Set LogicalProc
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attribute_name: LogicalProc
+    bios_attribute_value: Enabled
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+  when: ht|default(True)|bool
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create BIOS configuration job
+  when: bios_attr.changed
+
+
+- name: flush bios update
+  meta: flush_handlers
+
+- name: reboot system
+  connection: local
+  redfish_config:
+    category: Systems
+    command: PowerReboot
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"

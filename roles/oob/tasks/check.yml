@@ -1,0 +1,10 @@
+---
+- name: get bios attributes
+  connection: local
+  redfish_config:
+    category: Systems
+    command: GetBiosAttributes
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: result

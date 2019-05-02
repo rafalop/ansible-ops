@@ -1,0 +1,10 @@
+---
+# handlers file for roles/oob
+
+- name: Create Bios configuration job
+  idrac_redfish_command:
+    category: Systems
+    command: CreateBiosConfigJob
+    baseuri: "{{ redfish.baseuri }}"
+    username: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
