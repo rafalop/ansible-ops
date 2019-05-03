@@ -8,18 +8,29 @@
     -H "Content-Type: application/json" \
     -d '{"ResetType":"GracefulRestart"}'
 
+- name: Delay before checking iDRAC
+  pause:
+    prompt: Delay before checking iDRAC
+    seconds: 30
+
 - name: Wait for iDRAC to return
   delegate_to: "{{ redfish.oob_bastion }}"
-  wait_for:
-    host: "{{ redfish.baseuri }}"
-    port: 443
-    delay: 10
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Managers/iDRAC.Embedded.1 \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    --noproxy '*' \
+    | jq .Status.Health
+
+  register: result
+  until: result.stdout.find("OK") != -1
+  retries: 30
+  delay: 10
 
 # Doesn't appear to be a redfish api for this.
 - name: Delete job queue
   delegate_to: "{{ redfish.oob_bastion }}"
   shell: |
-    racadm -S \
+    racadm \
     -r "{{ redfish.baseuri }}" \
     -u "{{ redfish.user }}"  \
     -p "{{ redfish.password }}" \
