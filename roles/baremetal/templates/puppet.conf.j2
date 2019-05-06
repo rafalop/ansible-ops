@@ -2,11 +2,11 @@
 server = {{ puppet.server }}
 srv_domain = {{ puppet.srv_domain }}
 environment = {{ puppet.environment }}
-{% if puppet.use_srv_records }}
+{% if puppet.use_srv_records %}
 use_srv_records = {{ puppet.use_srv_records }}
 {% endif %}
 {% if proxy_env %}
-http_proxy = {{ proxy_env.http_proxy | urlsplit('hostname') }}
+http_proxy_host = {{ proxy_env.http_proxy | urlsplit('hostname') }}
 http_proxy_port = {{ proxy_env.http_proxy | urlsplit('port') }}
 {% endif %}
 {% if puppet.agent %}

@@ -26,7 +26,9 @@
         - network
       loop_control:
         loop_var: role_action
-      when: "ansible_distribution_version == '18.04'"
+      when:
+        - ansible_distribution_version == '18.04'
+        - ansible_virtualization_role == 'host'
       tags: network
     - name: Update firmware
       include_role:
