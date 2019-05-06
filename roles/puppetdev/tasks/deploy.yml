@@ -1,7 +1,7 @@
 ---
 - name: Sync repo to dev site
   synchronize:
-    src: ~/projects/puppet-site-monash/
+    src: "{{ repo_location }}"
     dest: /etc/puppetlabs/code/dev_environments/dev_${USER}
     delete: yes
     rsync_opts:

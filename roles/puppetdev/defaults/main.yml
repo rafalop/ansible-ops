@@ -1,2 +1,3 @@
 ---
 # defaults file for roles/racmon.puppetdev
+repo_location: "~/puppet-site-{{ puppet.environment }}"

@@ -1,4 +1,5 @@
 # ansible-ops
+
 R@CMON (Monash eResearch Centre) playbooks and roles
 
 ## Quick start
@@ -14,7 +15,6 @@ B. Clone inventory submodule and data.
 
 ```shell
 git submodule init && git submodule update
-
 ```
 
 C. **Optional** install python crypto library to speed up ansible vault actions
@@ -113,6 +113,12 @@ Set `strategy: debug` on a play to be dropped into a playbook debugger when a pl
 
   ```shell
   ansible monash-01-compute -a 'sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade'`
+  ```
+
+- working with ansible vars
+
+  ```shell
+  ansible db1-02 -m setup | sed '1 s/^.*$/{/' | jq
   ```
 
 - puppet dev cycle
