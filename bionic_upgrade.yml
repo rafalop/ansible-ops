@@ -21,10 +21,22 @@
         name: pacman
       vars:
         role_action: patch_seq
+    - name: install update-manager-core
+      apt:
+        name: update-manager-core
+        state: latest
     #-- bchache antics...
     - name: do-release-upgrade # noqa 301 305
       shell: do-release-upgrade -f DistUpgradeViewNonInteractive
     #-- @bionic
+    - name: Wait for reboot
+      wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 300
+        connect_timeout: 30
+      delegate_to: localhost
     - name: routine node config and update puppet
       include_role:
         name: baremetal
