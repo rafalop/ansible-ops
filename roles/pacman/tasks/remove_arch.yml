@@ -1,0 +1,12 @@
+---
+- name: Remove architecture
+  block:
+    - name: purge "{{ arch }}" packages
+      apt:
+        name: "*.*:{{ arch }}"
+        purge: yes
+    - name: remove "{{ arch }}" architecture
+      command: "dpkg --remove-architecture {{ arch }}"
+    - name: apt cleanup
+      apt:
+        autoremove: yes

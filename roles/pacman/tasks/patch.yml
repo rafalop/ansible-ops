@@ -1,0 +1,20 @@
+---
+- name: Gather_facts
+  setup:
+  gather_facts: min
+
+- name: Autoremove if uptime is gt 24 hours
+  become: true
+  command: /usr/bin/apt-get autoremove -y
+  args:
+    warn: false
+  when: ansible_uptime_seconds > 86400
+
+- name: Upgrade all packages to the latest version
+  become: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  apt:
+    update_cache: yes
+    upgrade: dist
+    dpkg_options: 'force-confold,force-confdef'

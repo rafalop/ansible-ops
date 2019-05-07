@@ -1,0 +1,15 @@
+---
+- name: Check quorum db
+  command: mysql -u root -p{{ db_password }} -e "SHOW STATUS LIKE 'wsrep_cluster_status'" -sr
+  register: db_quorum
+  failed_when: db_quorum.stdout.find('Primary') == -1
+  tags: ['check','check_db']
+  when: packages.stderr != "" and node_type == 'db' # noqa 602
+
+- name: Check quorum mq
+  become: true
+  command: /usr/sbin/rabbitmqctl cluster_status
+  register: mq_quorum
+  when: packages.stderr != "" and node_type == 'mq' # noqa 602
+  failed_when: (mq_quorum.stdout.find(rabbit_check_string) == -1) and (mq_quorum.stdout.find('{partitions,[]}]') == -1)
+  tags: ['check','check_mq']

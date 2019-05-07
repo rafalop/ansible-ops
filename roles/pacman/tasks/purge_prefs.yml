@@ -1,0 +1,4 @@
+---
+- name: purge prefs
+  command: rm -f /etc/apt/preferences.d/*.pre
+  become: true

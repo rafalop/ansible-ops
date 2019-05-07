@@ -1,0 +1,19 @@
+- name: install update-notifier if needed
+  block:
+    - name: check if update-notifier already installed
+      shell: dpkg -l update-notifier
+  rescue:
+    - name: install update-notifier
+      apt:
+        name: update-notifier
+        update_cache: yes
+
+- name: Check if packages need to be upgraded
+  command: /usr/lib/update-notifier/apt-check --package-names
+  register: packages
+
+- name: Record changes
+  copy:
+    content: "{{ packages.stderr }}"
+    dest: "_package_upgrades/{{ ansible_hostname }}.txt"
+  delegate_to: localhost

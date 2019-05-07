@@ -1,0 +1,19 @@
+---
+- name: audit
+  import_tasks: audit.yml
+
+- name: pre-patch checks
+  import_tasks: check.yml
+
+- name: patch
+  include_tasks: patch.yml
+  when: packages.stderr != "" and inventory_hostname is not in no_apt_upgrade # noqa 602
+
+- name: Wait to check quorum
+  wait_for:
+    timeout: 60
+  when: packages.stderr != "" and node_type == 'mq' or node_type == 'db' # noqa 602
+  tags: apt_upgrade
+
+- name: post-patch checks
+  import_tasks: check.yml
