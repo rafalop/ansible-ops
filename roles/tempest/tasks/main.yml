@@ -1,0 +1,41 @@
+---
+# requires python3
+- name: setup tmp dir
+  delegate_to: localhost
+  tempfile:
+    state: directory
+    prefix: ansible-tempest.
+  register: temploc
+
+- name: create venv & install deps
+  delegate_to: localhost
+  pip:
+    name: python-jenkins
+    virtualenv: "{{ temploc.path }}/venv"
+    virtualenv_python: python3
+
+- name: add interpreter
+  delegate_to: localhost
+  copy:
+    mode: u+x
+    dest: "{{ temploc.path }}/venv/bin/pyvenv"
+    content: |
+      #!/bin/bash
+      source "{{ temploc.path }}/venv/bin/activate"
+      python $@
+
+- name: run tempest compute host check
+  delegate_to: localhost
+  script: tempest-check.py -s {{ jenkins_server }} -u {{ jenkins_username }} -p {{ jenkins_password }} -z {{ tempest_zone }} -n {{ item }}
+  args:
+    executable: "{{ temploc.path }}/venv/bin/pyvenv"
+  loop: "{{ tempest_test_hosts }}"
+  register: tempest_result
+  when: tempest_result is not defined or tempest_result.rc != 0
+
+- name: clean up tempdir
+  delegate_to: localhost
+  file:
+    path: "{{ temploc.path }}"
+    state: absent
+
