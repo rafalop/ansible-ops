@@ -1,0 +1,24 @@
+---
+# Get network interfaces
+# Check connected interfaces
+# Set PXE to connected interface if not the same
+# Unset PXE on non-connected interface if needed
+# Return the mac address of the interface
+
+#- name: Set PXE boot
+#  redfish_config:
+#    category: Systems
+#    command: SetBiosAttributes
+#    bios_attr_name: PxeDev2EnDis
+#    bios_attr_value: Enabled
+#    baseuri: "{{ redfish.baseuri }}"
+#    user: "{{ redfish.user }}"
+#    password: "{{ redfish.password }}"
+#  register: bios_attr
+#  delegate_to: "{{ redfish.oob_bastion }}"
+#
+#- name: schedule bios setting update
+#  command: /bin/true
+#  notify: Create bios config job
+#  when: bios_attr.changed
+

@@ -1,0 +1,61 @@
+---
+- name: hypervisor xenial -> bionic upgrade
+  hosts: all
+  become: true
+  environment: "{{ proxy_env }}"
+  tasks:
+    #-- @xenial
+    - name: remove i386 arch, purge prefs
+      include_role:
+        name: pacman
+      with_items:
+        - remove_arch
+        - purge_prefs
+      loop_control:
+        loop_var: role_action
+      vars:
+        arch: i386
+    #-- further cleaning tasks...
+    - name: pre-do-release dist upgrade
+      include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+    #-- bchache antics...
+    - name: do-release-upgrade # noqa 301 305
+      shell: do-release-upgrade -f DistUpgradeViewNonInteractive
+    #-- @bionic
+    - name: routine node config and update puppet
+      include_role:
+        name: baremetal
+      with_items:
+        - pre_config
+        - reinstall
+      loop_control:
+        loop_var: role_action
+    - name: Update firmware
+      include_role:
+        name: firmware
+      with_items:
+        - install
+        - update
+      loop_control:
+        loop_var: role_action
+      when: ansible_virtualization_role == 'host'
+    - name: Update mlnx
+      include_role:
+        name: firmware
+      vars:
+        role_action: mlnx
+      when:
+        - ansible_p1p1 is defined
+        - ansible_p1p1.module is search('mlx')
+      tags: mlnx_firmware
+    #-- bcache antics...
+
+    #-- test hypervisor
+    - include_role:
+        name: tempest
+      vars:
+        tempest_test_hosts: "{{ ansible_play_batch }}"
+      run_once: true

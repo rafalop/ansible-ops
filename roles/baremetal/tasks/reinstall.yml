@@ -1,0 +1,14 @@
+---
+- name: get puppet repo
+  get_url:
+    url: "{{ puppet_apt_pkg }}"
+    dest: /tmp/puppetlabs-release.deb
+
+- name: install puppet repo # noqa 301
+  command: dpkg -i /tmp/puppetlabs-release.deb
+
+- name: pkg install
+  apt:
+    name: "{{ pkg_install }}"
+    state: present
+    update_cache: yes
