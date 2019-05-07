@@ -1,0 +1,80 @@
+---
+- name: tell slack we're starting
+  hosts: all
+  tasks:
+    - name: notify slack
+      slack:
+        token: "{{ slack_rcmon_webhook }}"
+        msg: "Starting patching on: {{ ansible_play_batch }}"
+        channel: "#rcmom_alerts"
+        username: "Ops Captian"
+      delegate_to: localhost
+      tags: slack_notification
+      run_once: true
+
+- name: patch dbs
+  hosts: monash-dbs
+  serial: 1
+  max_fail_percentage: 1
+  tasks:
+    - include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+        node_type: db
+
+- name: patch mqs
+  hosts: monash-rabbits
+  serial: 1
+  max_fail_percentage: 1
+  tasks:
+    - include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+        node_type: mq
+
+- name: patch control plane & ra
+  hosts: monash-control-planes:remote-access
+  tasks:
+    - include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+
+- name: patch test nodes
+  hosts: monash-test-compute
+  tasks:
+    - include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+
+- name: run tempest
+  hosts: all
+  tasks:
+    - include_role:
+        name: tempest
+      run_once: true
+
+- name: patch the rest
+  hosts: monash-01:monash-02:!monash-control-planes:!monash-dbs:!monash-rabbits:!monash-test-compute
+  tasks:
+    - include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+
+
+- name: tell slack we're done
+  hosts: all
+  tasks:
+    - name: notify slack
+      slack:
+        token: "{{ slack_rcmon_webhook }}"
+        msg: "Patching complete"
+        channel: "#rcmom_alerts"
+        username: "Ops Captian"
+      run_once: true
+      delegate_to: localhost
+      tags: slack_notification

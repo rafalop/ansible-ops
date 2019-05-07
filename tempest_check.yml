@@ -1,0 +1,10 @@
+---
+- name: run tempest
+  hosts: all
+  gather_facts: False
+  tasks:
+    - include_role:
+        name: tempest
+      vars:
+        tempest_test_hosts: "{{ ansible_play_batch }}"
+      run_once: true

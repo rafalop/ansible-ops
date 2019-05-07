@@ -1,14 +1,16 @@
 - name: install update-notifier if needed
   block:
     - name: check if update-notifier already installed
-      shell: dpkg -l update-notifier
+      command: dpkg -l update-notifier
+
   rescue:
     - name: install update-notifier
       apt:
         name: update-notifier
+        state: latest
         update_cache: yes
 
-- name: Check if packages need to be upgraded
+- name: Check if packages need to be upgraded # noqa 301
   command: /usr/lib/update-notifier/apt-check --package-names
   register: packages
 
