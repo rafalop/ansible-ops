@@ -7,7 +7,7 @@
   rescue:
     - name: Get dsu installer
       get_url:
-        url: "{{ dsu_download_link }}"
+        url: "{{ dsu_download_url }}"
         dest: /tmp/
         mode: 0700
     - name: Install dsu
