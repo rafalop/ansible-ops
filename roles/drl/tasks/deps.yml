@@ -1,0 +1,11 @@
+- name: check & install update-manager-core
+  become: yes
+  block:
+    - name: check if update-manager-core is installed
+      command: dpkg -l update-manager-core
+
+  rescue:
+    - name: install update-manager-core
+      apt:
+        name: update-manager-core
+        state: latest

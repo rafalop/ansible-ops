@@ -1,0 +1,34 @@
+---
+
+- name: do-release-upgrade # noqa 301 305
+  shell: do-release-upgrade -f DistUpgradeViewNonInteractive
+  async: 45
+
+- name: Get dpkg pid
+  command: ps -C dpkg -o pid --no-headers
+  register: pid
+
+- name: check
+  include_tasks: check.yml
+  until: pid.stdout is not defined
+  register: pid
+
+- name: check if do-release is still running
+  command: ps -C do-release-upgrade
+  register: ps
+
+#- name: Wait for reboot
+#  wait_for:
+#    port: 22
+#    host: '{{ inventory_hostname }}-1g.erc.monash.edu.au'
+#    search_regex: OpenSSH
+#    delay: 300
+#    connect_timeout: 30
+#  delegate_to: ra2
+#  tags: drl
+
+
+- name: reboot
+  reboot:
+    reboot_timeout: 1800
+  when: ps.stdout is not defined

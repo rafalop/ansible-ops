@@ -1,0 +1,16 @@
+---
+- name: Delay before checking pid
+  pause:
+    prompt: Delay before checking pid
+    seconds: 30
+
+- name: check if dpkg is waiting for input
+  command: strace -p "{{ pid.stdout }}" -e read
+  register: strace
+
+- name: tickle dpkg
+  command: touch /proc/"{{ pid.stdout }}"/fd/0
+
+- name: Get dpkg pid
+  command: ps -C dpkg -o pid --no-headers
+  register: pid
