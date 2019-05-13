@@ -1,0 +1,10 @@
+---
+- name: Ensure record dir
+  file:
+    path: _hypervisor_list/
+    state: directory
+  delegate_to: localhost
+
+- name: check nova command
+  command: which nova
+  delegate_to: localhost

@@ -1,0 +1,4 @@
+---
+- name: stop vms on a hypervisor
+  shell: cat _hypervisor_list/{{ inventory_hostname }}.txt | xargs -n 1 nova stop
+  delegate_to: localhost

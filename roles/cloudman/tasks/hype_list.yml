@@ -1,0 +1,12 @@
+---
+- name: get active vms on {{ inventory_hostname }}
+  shell: nova list --host {{ inventory_hostname }} --all-tenants | grep ACTIVE | awk '{print $2}'
+  register: result
+  delegate_to: localhost
+
+- name: write to localhost
+  copy:
+    content: "{{ result.stdout }}"
+    dest: "_hypervisor_list/{{ inventory_hostname }}.txt"
+    force: yes
+  delegate_to: localhost
