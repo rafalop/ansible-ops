@@ -15,6 +15,7 @@
   register: packages
 
 - name: Record changes
+  become: no
   copy:
     content: "{{ packages.stderr }}"
     dest: "_package_upgrades/{{ ansible_hostname }}.txt"

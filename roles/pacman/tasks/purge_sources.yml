@@ -1,0 +1,18 @@
+---
+- name: purge sources
+  become: true
+  file:
+    name: /etc/apt/sources.list.d/*{{ release }}*.list
+    state: absent
+
+- name: purge distUpgrade sources
+  become: true
+  file:
+    name: /etc/apt/sources.list.d/*.list.distUpgrade
+    state: absent
+
+- name: purge old puppet sources
+  become: true
+  file:
+    name: /etc/apt/sources.list.d/puppetlabs.list
+    state: absent

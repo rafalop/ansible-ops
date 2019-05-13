@@ -4,6 +4,7 @@
 
 - name: pre-patch checks
   import_tasks: check.yml
+  when: node_type is defined # noqa 602
 
 - name: patch
   include_tasks: patch.yml
@@ -12,8 +13,9 @@
 - name: Wait to check quorum
   wait_for:
     timeout: 60
-  when: packages.stderr != "" and node_type == 'mq' or node_type == 'db' # noqa 602
+  when: packages.stderr != "" and node_type is defined # noqa 602
   tags: apt_upgrade
 
 - name: post-patch checks
   import_tasks: check.yml
+  when: node_type is defined # noqa 602
