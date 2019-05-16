@@ -1,0 +1,18 @@
+---
+- name: generate mailouts
+  shell: |
+    hivemind notification.freshdesk_mailout \
+    --zone "{{ cell_name }}" \
+    --subject 'Scheduled Downtime for your instance' \
+    --timezone 'AEST' \
+    --start-time "{{ '%H:%M %d-%m-%Y' | strftime }}" \
+    --duration 4 \
+    --nodes "{{ item }}"
+    --no-dry-run \
+    mailout-templates/10-node_reset.tmpl
+  args:
+    executable: "{{ hivemind_path }}/venv/bin/pyvenv"
+    chdir: "{{ hivemind_path }}"
+  loop: "{{ hivemind_hosts }}"
+  register: hivemind_result
+  delegate_to: localhost

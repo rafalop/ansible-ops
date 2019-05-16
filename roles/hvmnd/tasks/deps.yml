@@ -1,0 +1,50 @@
+---
+- name: Ensure dir
+  file:
+    path: "{{ hivemind_path }}"
+    state: directory
+
+- name: ensure hivemind config dir
+  file:
+    path: "~/.hivemind/hivemind"
+    state: directory
+
+- name: ensure hivemind config
+  template:
+    dest: "~/.hivemind/hivemind/config.ini"
+    src: config.ini.j2
+
+- name: clone hivemind
+  git:
+    repo: 'https://github.com/NeCTAR-RC/hivemind.git'
+    dest: "{{ hivemind_path }}/hivemind"
+
+- name: clone hivemind_contrib
+  git:
+    repo: 'https://github.com/NeCTAR-RC/hivemind_contrib.git'
+    dest: "{{ hivemind_path }}/hivemind_contrib"
+
+- name: clone mailout templates
+  git:
+    repo: 'git@gitlab.erc.monash.edu.au:nectar/mailout-templates.git'
+    dest: "{{ hivemind_path }}/mailout-templates"
+
+# pip module doesn't deal with relative paths well :/
+- name: create venv & install deps
+  pip:
+    requirements: "{{ hivemind_path }}/hivemind/requirements.txt"
+    virtualenv: "{{ hivemind_path }}/venv"
+
+- name: install contrib
+  pip:
+    requirements: "{{ hivemind_path }}/hivemind_contrib/requirements.txt"
+    virtualenv: "{{ hivemind_path }}/venv"
+
+- name: add interpreter
+  copy:
+    mode: u+x
+    dest: "{{ hivemind_path }}/venv/bin/pyvenv"
+    content: |
+      #!/bin/bash
+      source {{ hivemind_path }}/venv/bin/activate
+      $@

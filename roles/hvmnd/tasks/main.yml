@@ -1,0 +1,7 @@
+---
+# tasks file for roles/hvmnd
+- set_fact:
+    hivemind_path: "{{ hivemind_path | default('~/projects/hivemind.d') }}"
+- import_tasks: deps.yml
+  delegate_to: localhost
+- include_tasks: "{{ role_action | default('comms') }}.yml"
