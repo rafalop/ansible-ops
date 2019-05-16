@@ -1,0 +1,10 @@
+---
+- name: generate midonet commands
+  script: generate_midonet_commands.sh "{{ midonet.tunnel_zone }}"
+  args:
+    creates: ~/midonet_commands_limited.txt
+  delegate_to: "{{ network_controller }}"
+
+- name: run midonet commands
+  command: bash -x ~/midonet_commands_limited.txt
+  delegate_to: "{{ network_controller }}"

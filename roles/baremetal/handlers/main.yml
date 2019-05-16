@@ -4,6 +4,10 @@
   become: true
   puppet:
 
+- name: update grub
+  become: true
+  command: update-grub
+
 #- name: reboot baremetal
 #  become: true
 #  reboot:

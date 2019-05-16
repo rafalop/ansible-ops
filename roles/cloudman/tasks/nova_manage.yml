@@ -1,0 +1,14 @@
+---
+- name: Add hype to cell
+  block:
+    - name: check if host is in cell
+      become: yes
+      shell: nova-manage cell_v2 list_hosts --cell_uuid "{{ cell_uuid }}"  | grep "{{ inventory_hostname }}"
+      register: list
+      delegate_to: novaq1-02
+  rescue:
+    - name: discover hosts to cell
+      become: yes
+      shell: sudo nova-manage cell_v2 discover_hosts --cell_uuid "{{ cell_uuid }}"
+      register: discover
+      delegate_to: novaq1-02

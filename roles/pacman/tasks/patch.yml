@@ -5,9 +5,8 @@
 
 - name: Autoremove if uptime is gt 24 hours
   become: true
-  command: /usr/bin/apt-get autoremove -y
-  args:
-    warn: false
+  apt:
+    autoremove:
   when: ansible_uptime_seconds > 86400
 
 - name: Upgrade all packages to the latest version

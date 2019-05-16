@@ -46,6 +46,7 @@
         - pre_config
         - install
         - config
+        - grub_config
       loop_control:
         loop_var: role_action
       tags: bm

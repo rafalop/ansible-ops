@@ -14,3 +14,7 @@ puppet_apt_pkg: "{{ 'https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.de
 puppet_release: "{{ 'puppetlabs-release' if ansible_distribution >= 'Ubuntu 16.04' else 'puppet5-release' }}"
 
 mgt_if_name: "{{ 'e1p1' if ansible_virtualization_role == 'host' else 'eth0' }}"
+
+cmdline_linux: "{{ cmdline_linux_intel if 'GenuineIntel' in ansible_processor else cmdline_linux_default }}"
+cmdline_linux_intel: "intel_iommu=on iommu=pt intel_idle.max_cstate=0 processor.max_cstate=1"
+cmdline_linux_default: ""

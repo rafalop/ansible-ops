@@ -1,0 +1,8 @@
+---
+- name: configure /etc/default/grub
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: "GRUB_CMDLINE_LINUX_DEFAULT='{{ cmdline_linux }}'"
+  notify:
+    - update grub

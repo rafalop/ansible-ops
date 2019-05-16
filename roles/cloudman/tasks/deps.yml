@@ -8,3 +8,17 @@
 - name: check nova command
   command: which nova
   delegate_to: localhost
+
+- name: ensure nova controler delegate
+  command: hostname
+  delegate_to: "{{ nova_controller }}"
+
+- name: ensure net controler
+  command: hostname
+  delegate_to: "{{ network_controller }}"
+
+- name: ensure midonetrc
+  template:
+    dest: "~/.midonetrc"
+    src: midonetrc.j2
+  delegate_to: "{{ network_controller }}"
