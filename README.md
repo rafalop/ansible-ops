@@ -112,13 +112,14 @@ Set `strategy: debug` on a play to be dropped into a playbook debugger when a pl
 - no fail patching
 
   ```shell
-  ansible monash-01-compute -a 'sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade'`
+  ansible monash-01-compute -o -a 'sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade --allow-downgrades'`
   ```
 
 - working with ansible vars
 
   ```shell
   ansible db1-02 -m setup | sed '1 s/^.*$/{/' | jq
+  ansible rccomdc1r24-07 -m setup | sed '1 s/^.*$/{/' | jq .ansible_facts.ansible_processor
   ```
 
 - puppet dev cycle
