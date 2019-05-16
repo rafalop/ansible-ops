@@ -1,7 +1,38 @@
 ---
-- name: hypervisor xenial -> bionic upgrade
+- name: prepare hypervisor
   hosts: all
-  become: true
+  environment: "{{ os_admin }}"
+  tags: prepare
+  tasks:
+    #- WIP
+    #- name: notify users
+    #  include_role:
+    #    name: hvmnd
+    #  vars:
+    #    hivemind_hosts: "{{ ansible_play_batch }}"
+    #  run_once: true
+    #  tags: comms
+    - name: stop and lock vms
+      include_role:
+        name: cloudman
+      with_items:
+        - hype_list
+        - hype_stop
+        - hype_lock
+      loop_control:
+        loop_var: role_action
+    - name: stop puppet
+      become: yes
+      command: /opt/puppetlabs/bin/puppet agent --disable "bionic upgrade"
+    - name: stop nova-compute
+      become: yes
+      systemd:
+        name: nova-compute
+        state: stopped
+
+- name: hypervisor xenial pre drl
+  hosts: all
+  tags: pre-drl
   environment: "{{ proxy_env }}"
   tasks:
     #-- @xenial
@@ -21,23 +52,33 @@
         name: pacman
       vars:
         role_action: patch_seq
-    - name: install update-manager-core
-      apt:
-        name: update-manager-core
-        state: latest
     #-- bchache antics...
-    - name: do-release-upgrade # noqa 301 305
-      shell: do-release-upgrade -f DistUpgradeViewNonInteractive
-    #-- @bionic
-    - name: Wait for reboot
-      wait_for:
-        port: 22
-        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
-        search_regex: OpenSSH
-        delay: 300
-        connect_timeout: 30
-      delegate_to: localhost
+
+- name: hypervisor xenial drl bionic
+  hosts: all
+  tags: drl
+  environment: "{{ proxy_env }}"
+  tasks:
+    - name: drl
+      include_role:
+        name: drl
+
+- name: hypervisor bionic post drl
+  hosts: all
+  environment: "{{ proxy_env }}"
+  tags: post-drl
+  tasks:
+    - name: cleanup xenial sources
+      include_role:
+        name: pacman
+      with_items:
+        - purge_sources
+      loop_control:
+        loop_var: role_action
+      vars:
+        release: xenial
     - name: routine node config and update puppet
+      become: yes
       include_role:
         name: baremetal
       with_items:
@@ -62,11 +103,11 @@
       when:
         - ansible_p1p1 is defined
         - ansible_p1p1.module is search('mlx')
-      tags: mlnx_firmware
     #-- bcache antics...
 
     #-- test hypervisor
-    - include_role:
+    - name: Test "{{ ansible_play_batch }}"
+      include_role:
         name: tempest
       vars:
         tempest_test_hosts: "{{ ansible_play_batch }}"

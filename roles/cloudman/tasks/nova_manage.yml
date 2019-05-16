@@ -9,6 +9,6 @@
   rescue:
     - name: discover hosts to cell
       become: yes
-      shell: sudo nova-manage cell_v2 discover_hosts --cell_uuid "{{ cell_uuid }}"
+      command: sudo nova-manage cell_v2 discover_hosts --cell_uuid "{{ cell_uuid }}"
       register: discover
       delegate_to: novaq1-02
