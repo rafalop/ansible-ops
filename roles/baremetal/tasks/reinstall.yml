@@ -5,9 +5,11 @@
     dest: /tmp/puppetlabs-release.deb
 
 - name: install puppet repo # noqa 301
+  become: true
   command: dpkg -i /tmp/puppetlabs-release.deb
 
 - name: pkg install
+  become: true
   apt:
     name: "{{ pkg_install }}"
     state: present

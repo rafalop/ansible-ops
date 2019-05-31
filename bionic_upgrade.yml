@@ -78,7 +78,6 @@
       vars:
         release: xenial
     - name: routine node config and update puppet
-      become: yes
       include_role:
         name: baremetal
       with_items:
@@ -106,6 +105,9 @@
     #-- bcache antics...
 
     #-- test hypervisor
+    - name: flush handlers to force reboot
+      meta: flush_handlers
+
     - name: Test "{{ ansible_play_batch }}"
       include_role:
         name: tempest

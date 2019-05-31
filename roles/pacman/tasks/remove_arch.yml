@@ -1,5 +1,6 @@
 ---
 - name: Remove architecture
+  become: yes
   block:
     - name: Remove "{{ arch }}" packages
       apt:

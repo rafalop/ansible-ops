@@ -1,5 +1,6 @@
 ---
 - name: check for puppet
+  become: yes
   block:
     - name: check dpkg for puppet
       command: dpkg -l "{{ puppet_release }}"

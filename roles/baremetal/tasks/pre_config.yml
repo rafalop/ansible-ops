@@ -1,5 +1,6 @@
 ---
 - name: configure /etc/environment
+  become: yes
   block:
     - name: http_proxy
       lineinfile:
@@ -18,6 +19,7 @@
         line: "no_proxy={{ proxy_env.no_proxy }}"
 
 - name: ensure apt proxy conf
+  become: yes
   copy:
     dest: /etc/apt/apt.conf.d/01proxy
     content: |
@@ -25,6 +27,7 @@
       Acquire::http::proxy "{{ proxy_env.http_proxy }}";
 
 - name: "Set root password"
+  become: yes
   user:
     name: root
     password: "{{ root_password | password_hash('sha512', 'secretsalt') }}"

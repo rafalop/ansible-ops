@@ -1,16 +1,22 @@
 ---
-- name: Delay before checking pid
+- name: Get dpkg pid
+  command: ps -C dpkg -o pid --no-headers
+  register: pid
+
+#- name: check if dpkg is waiting for input
+#  command: strace -p "{{ pid.stdout }}" -e read
+#  register: strace
+
+- name: tickle dpkg
+  command: touch /proc/"{{ pid.stdout }}"/fd/0
+  when: pid.stdout is defined
+
+- name: Delay before looping
   pause:
     prompt: Delay before checking pid
     seconds: 30
 
-- name: check if dpkg is waiting for input
-  command: strace -p "{{ pid.stdout }}" -e read
-  register: strace
-
-- name: tickle dpkg
-  command: touch /proc/"{{ pid.stdout }}"/fd/0
-
-- name: Get dpkg pid
-  command: ps -C dpkg -o pid --no-headers
-  register: pid
+- name: get drl status
+  async_status:
+    jid: "{{ drl_task.ansible_job_id }}"
+  register: drl_status

@@ -1,15 +1,42 @@
 ---
-- name: purge sources
+
+- name: find previous release sources
+  find:
+    paths: /etc/apt/sources.list.d/
+    patterns: "*{{ release }}*.list"
+  register: files_to_delete
+  when: release is defined
+
+- name: purge previous release sources
   become: true
   file:
-    name: /etc/apt/sources.list.d/*{{ release }}*.list
+    path: "{{ item.path }}"
     state: absent
+  with_items: "{{ files_to_delete.files }}"
+  when: release is defined
+
+- name: purge listed sources
+  become: true
+  file:
+    name: "/etc/apt/sources.list.d/{{ item }}.list"
+    state: absent
+  with_items: "{{ old_source }}"
+  when: old_source is defined
+
+- name: find distUpgrade sources
+  find:
+    paths: /etc/apt/sources.list.d/
+    patterns: "*.list.distUpgrade"
+  register: files_to_delete
+  when: release is defined
 
 - name: purge distUpgrade sources
-  become: true
+  become: yes
   file:
-    name: /etc/apt/sources.list.d/*.list.distUpgrade
+    path: "{{ item.path }}"
     state: absent
+  with_items: "{{ files_to_delete.files }}"
+  when: release is defined
 
 - name: purge old puppet sources
   become: true

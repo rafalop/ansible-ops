@@ -1,7 +1,6 @@
 ---
 - name: Gather_facts
   setup:
-  gather_facts: min
 
 - name: Autoremove if uptime is gt 24 hours
   become: true
