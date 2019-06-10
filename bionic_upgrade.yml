@@ -1,8 +1,8 @@
 ---
-- name: prepare hypervisor
+- name: prelude
   hosts: all
   environment: "{{ os_admin }}"
-  tags: prepare
+  tags: prelude
   tasks:
     #- WIP
     #- name: notify users
@@ -104,13 +104,49 @@
         - ansible_p1p1.module is search('mlx')
     #-- bcache antics...
 
-    #-- test hypervisor
     - name: flush handlers to force reboot
       meta: flush_handlers
 
+    #-- test hypervisor
+    #- name: Test "{{ ansible_play_batch }}"
+    #  include_role:
+    #    name: tempest
+    #  vars:
+    #    tempest_test_hosts: "{{ ansible_play_batch }}"
+    #  run_once: true
+
+- name: prologue
+  hosts: all
+  environment: "{{ os_admin }}"
+  tags: prologue
+  tasks:
     - name: Test "{{ ansible_play_batch }}"
-      include_role:
-        name: tempest
-      vars:
-        tempest_test_hosts: "{{ ansible_play_batch }}"
+      jenkins_build:
+        name: "tempest-compute-host-check"
+        args:
+          CLOUD: "production"
+          AVAILABILITY_ZONE: "{{ cell_name }}"
+          HOST: "{{ item }}"
+        user: "{{ jenkins_username }}"
+        password: "{{ jenkins_password }}"
+        url: "{{ jenkins_server }}"
+      loop: "{{ ansible_play_batch }}"
       run_once: true
+      delegate_to: localhost
+
+    - name: stop and lock vms
+      include_role:
+        name: cloudman
+      with_items:
+        - hype_unlock
+        - hype_start
+      loop_control:
+        loop_var: role_action
+    - name: start puppet
+      become: yes
+      command: /opt/puppetlabs/bin/puppet agent --enable
+    - name: start nova-compute
+      become: yes
+      systemd:
+        name: nova-compute
+        state: started
