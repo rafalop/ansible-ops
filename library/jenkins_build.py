@@ -29,6 +29,10 @@ options:
     description:
       - Name of the Jenkins job to build.
     required: true
+  build_number:
+    description:
+      - An integer which specifies a build of a job. Is required to remove a build from the queue.
+    required: false
   password:
     description:
       - Password to authenticate with the Jenkins server.
@@ -45,7 +49,8 @@ options:
     required: false
   url:
     description:
-      - URL where the Jenkins server is accessible. required: false
+      - URL where the Jenkins server is accessible.
+    required: false
     default: http://localhost:8080
   user:
     description:
@@ -120,8 +125,8 @@ class JenkinsBuild:
         self.token = module.params.get('token')
         self.user = module.params.get('user')
         self.jenkins_url = module.params.get('url')
+        self.build_number = module.params.get('build_number')
         self.server = self.get_jenkins_connection()
-        self.build_number = None
 
         self.result = {
             'changed': False,
@@ -175,7 +180,11 @@ class JenkinsBuild:
                                   exception=traceback.format_exc())
 
     def absent_build(self):
-        self.module.fail_json(msg='state=absent not implimented yet', exception=traceback.format_exc())
+        try:
+            self.server.delete_build(self.name, self.build_number)
+        except Exception as e:
+            self.module.fail_json(msg='Unable to delete build, %s for %s' % (to_native(e), self.jenkins_url),
+                                  exception=traceback.format_exc())
 
     def get_result(self):
         result = self.result
@@ -184,6 +193,9 @@ class JenkinsBuild:
         if build_status['result'] is None:
             sleep(10)
             self.get_result()
+        elif build_status['result'] is not "SUCCESS":
+            result['failed'] = True
+            result['build_info'] = build_status
         else:
             result['changed'] = True
             result['build_info'] = build_status
@@ -203,6 +215,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             args=dict(required=False, type='dict'),
+            build_number=dict(required=False, type='int'),
             name=dict(required=True),
             password=dict(required=False, no_log=True),
             state=dict(required=False, choices=['present', 'absent'], default="present"),
@@ -212,7 +225,6 @@ def main():
         ),
         mutually_exclusive=[
             ['password', 'token'],
-            ['config', 'enabled'],
         ],
         supports_check_mode=True,
     )
