@@ -7,7 +7,7 @@
     - name: Check driver version
       shell: ethtool -i p1p1 | grep -e '^version' | awk '{print $2}'
       register: driver_version
-      failed_when: driver_version is version(mlnx_ofed_vers, '<')
+      failed_when: driver_version is version(mlnx_ofed_vers, '>')
 
   rescue:
     - name: Download & extract mlnx ofed
@@ -23,5 +23,6 @@
         chdir: "/tmp/{{ mlnx_ofed_file | splitext | first }}"
 
     - name: reboot
+      become: yes
       reboot:
         reboot_timeout: 3600

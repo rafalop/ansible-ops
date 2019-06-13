@@ -5,8 +5,18 @@
   delegate_to: localhost
 
 - name: write to localhost
-  copy:
-    content: "{{ result.stdout }}"
-    dest: "_hypervisor_list/{{ inventory_hostname }}.txt"
-    force: yes
-  delegate_to: localhost
+  block:
+    - name: stat target
+      file:
+        path: "_hypervisor_list/{{ inventory_hostname }}.txt"
+      register: stat
+    - debug:
+        var: stat
+
+  rescue:
+    - name: write file
+      copy:
+        content: "{{ result.stdout }}"
+        dest: "_hypervisor_list/{{ inventory_hostname }}.txt"
+        force: yes
+      delegate_to: localhost

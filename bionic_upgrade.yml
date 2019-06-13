@@ -2,7 +2,9 @@
 - name: prelude
   hosts: all
   environment: "{{ os_admin }}"
-  tags: prelude
+  tags:
+    - prelude
+    - part_a
   tasks:
     #- WIP
     #- name: notify users
@@ -32,10 +34,11 @@
 
 - name: hypervisor xenial pre drl
   hosts: all
-  tags: pre-drl
+  tags:
+    - pre-drl
+    - part_a
   environment: "{{ proxy_env }}"
   tasks:
-    #-- @xenial
     - name: remove i386 arch, purge prefs
       include_role:
         name: pacman
@@ -46,7 +49,28 @@
         loop_var: role_action
       vars:
         arch: i386
-    #-- further cleaning tasks...
+    - name: cleanup old sources
+      include_role:
+        name: pacman
+      with_items:
+        - purge_sources
+      loop_control:
+        loop_var: role_action
+      vars:
+        old_source:
+          - "dell"
+          - "linux.dell.com.sources"
+          - "midonet"
+          - "midonet-openstack-integration"
+          - "midonet-third-party"
+          - "nectar-mitaka"
+          - "nectar-newton"
+          - "nectar-ocata"
+          - "nectar-pike"
+          - "openjdk-ppa"
+          - "puppetlabs_pc1"
+          - "qemu-libvirt-repo"
+          - "ubuntu-cloud-archive"
     - name: pre-do-release dist upgrade
       include_role:
         name: pacman
@@ -66,8 +90,12 @@
 - name: hypervisor bionic post drl
   hosts: all
   environment: "{{ proxy_env }}"
-  tags: post-drl
+  tags:
+    - post-drl
+    - part_b
   tasks:
+    - name: gather bionic facts
+      setup:
     - name: cleanup xenial sources
       include_role:
         name: pacman
@@ -85,6 +113,15 @@
         - reinstall
       loop_control:
         loop_var: role_action
+
+    - name: start puppet
+      become: yes
+      command: /opt/puppetlabs/bin/puppet agent --enable
+
+    - name: run puppet to get repos
+      become: yes
+      puppet:
+
     - name: Update firmware
       include_role:
         name: firmware
@@ -94,6 +131,7 @@
       loop_control:
         loop_var: role_action
       when: ansible_virtualization_role == 'host'
+      tags: dell_firmware
     - name: Update mlnx
       include_role:
         name: firmware
@@ -107,19 +145,19 @@
     - name: flush handlers to force reboot
       meta: flush_handlers
 
-    #-- test hypervisor
-    #- name: Test "{{ ansible_play_batch }}"
-    #  include_role:
-    #    name: tempest
-    #  vars:
-    #    tempest_test_hosts: "{{ ansible_play_batch }}"
-    #  run_once: true
-
-- name: prologue
+- name: postlude
   hosts: all
   environment: "{{ os_admin }}"
-  tags: prologue
+  tags:
+    - postlude
+    - part_b
   tasks:
+    - name: start nova-compute
+      become: yes
+      systemd:
+        name: nova-compute
+        state: started
+
     - name: Test "{{ ansible_play_batch }}"
       jenkins_build:
         name: "tempest-compute-host-check"
@@ -134,7 +172,7 @@
       run_once: true
       delegate_to: localhost
 
-    - name: stop and lock vms
+    - name: start and unlock vms
       include_role:
         name: cloudman
       with_items:

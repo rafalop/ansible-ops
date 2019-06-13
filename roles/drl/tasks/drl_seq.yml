@@ -1,22 +1,27 @@
 ---
 
-- name: do-release-upgrade # noqa 301 305
-  shell: nohup do-release-upgrade -f DistUpgradeViewNonInteractive </dev/null >/dev/null 2>&1 &
-  async: 2700
-  poll: 0
-  register: drl_task
+#- name: do-release-upgrade # noqa 301 305
+#  shell: nohup do-release-upgrade -f DistUpgradeViewNonInteractive </dev/null >/dev/null 2>&1 &
+#  async: 2700
+#  poll: 0
+#  register: drl_task
+#
+#- name: Delay before checking pid
+#  pause:
+#    prompt: Delay before checking pid
+#    seconds: 270
+#
+#- name: check
+#  include_tasks: check.yml
+#  until: drl_status.finished
+#  register: pid
+#
 
-- name: Delay before checking pid
-  pause:
-    prompt: Delay before checking pid
-    seconds: 270
-
-- name: check
-  include_tasks: check.yml
-  until: drl_status.finished
-  register: pid
+- name: do-release-upgrade
+  script: drl.sh
+  become: yes
+  register: drl
 
 - name: reboot
   reboot:
     reboot_timeout: 1800
-  when: ps.stdout is not defined

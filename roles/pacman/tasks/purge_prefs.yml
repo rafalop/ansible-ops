@@ -1,6 +1,13 @@
 ---
-- name: purge prefs
+- name: find preferences
+  find:
+    paths: /etc/apt/preferences.d/
+    patterns: "*.pref"
+  register: files_to_delete
+
+- name: purge previous release sources
   become: true
   file:
-    name: /etc/apt/preferences.d/*.pre
+    path: "{{ item.path }}"
     state: absent
+  with_items: "{{ files_to_delete.files }}"

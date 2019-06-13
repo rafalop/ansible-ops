@@ -9,4 +9,14 @@
       apt:
         name: update-manager-core
         state: latest
-  #-- needs to be a reboot here
+
+- name: stat target
+  stat:
+    path: /var/run/reboot-required
+  register: stat_result
+
+- name: reboot if required
+  become: yes
+  reboot:
+    reboot_timeout: 1800
+  when: stat_result.stat.exists
