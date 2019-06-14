@@ -21,8 +21,4 @@
       command: ./mlnxofedinstall --add-kernel-support --force --skip-repo --all --without-mlnx-nvme
       args:
         chdir: "/tmp/{{ mlnx_ofed_file | splitext | first }}"
-
-    - name: reboot
-      become: yes
-      reboot:
-        reboot_timeout: 3600
+      notify: firmware reboot

@@ -5,7 +5,7 @@
     patterns: "*.pref"
   register: files_to_delete
 
-- name: purge previous release sources
+- name: purge preference files
   become: true
   file:
     path: "{{ item.path }}"

@@ -37,9 +37,3 @@
     state: absent
   with_items: "{{ files_to_delete.files }}"
   when: release is defined
-
-- name: purge old puppet sources
-  become: true
-  file:
-    name: /etc/apt/sources.list.d/puppetlabs.list
-    state: absent

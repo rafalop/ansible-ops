@@ -1,0 +1,44 @@
+- name: Sanity check, debug some vars
+  debug:
+    var: ansible_limit
+  delegate_to: localhost
+- debug:
+    var: ansible_play_batch
+  delegate_to: localhost
+- debug:
+    var: inventory_hostname
+  delegate_to: localhost
+- debug:
+    var: ansible_host
+  delegate_to: localhost
+  #looking for monash-test-compute hosts that are in the same zone(s) as ansible_play_batch hosts
+  #- set_fact:
+  #    some_var: []
+  #- set_fact:
+  #    cell: "{{ ansible_play_batch | map('extract', hostvars, 'tempest_zone') | list | unique }}"
+  #    some_other_var: >
+  #            {% for host_a in groups['monash-test-compute'] %}
+  #            {% for host_b in ansible_play_batch %}
+  #            {% if hostvars[host_a]['tempest_zone'] == hostvars[host_b]['tempest_zone'] %}
+  #            {{- some_var + host_a | unique -}}
+  #            {% endif %}
+  #            {% endfor %}
+  #            {% endfor %}
+  #- set_fact:
+  #    some_var: "{{ item.0 | unique }}"
+  #    when: hostvars[item.0]['tempest_zone'] == hostvars[item.1]['tempest_zone']
+  #    loop:
+  #      - groups['monash-test-compute']
+  #      - ansible_play_batch
+
+- debug:
+    var: some_var
+- name: set_fact
+  set_fact:
+    tempest_host_check: "{{ groups['monash-test-compute'] | intersect(ansible_play_batch) }}"
+- debug:
+    var: tempest_host_check
+- debug:
+    msg: "passed the test"
+  delegate_to: localhost
+  when: inventory_hostname is not in no_apt_upgrade

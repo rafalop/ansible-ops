@@ -1,0 +1,10 @@
+---
+
+- name: Run meltspec check script
+  script:  spectre-meltdown-checker.sh --batch text
+  ignore_errors: yes
+  register: check
+
+- name: parse meltspec output
+  debug:
+    var: check.stdout_lines

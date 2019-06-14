@@ -6,6 +6,8 @@ bionic_pkgs:
   - gpg-agent
   - puppet-agent
 
+bionic_min_kernel: 4.15.0-51
+
 xenial_pkgs:
   - puppet-agent
 

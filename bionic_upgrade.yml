@@ -96,32 +96,16 @@
   tasks:
     - name: gather bionic facts
       setup:
-    - name: cleanup xenial sources
+    - name: Update mlnx
+      # will uninstall nova compute if it runs
+      # requires bionc repos
       include_role:
-        name: pacman
-      with_items:
-        - purge_sources
-      loop_control:
-        loop_var: role_action
+        name: firmware
       vars:
-        release: xenial
-    - name: routine node config and update puppet
-      include_role:
-        name: baremetal
-      with_items:
-        - pre_config
-        - reinstall
-      loop_control:
-        loop_var: role_action
-
-    - name: start puppet
-      become: yes
-      command: /opt/puppetlabs/bin/puppet agent --enable
-
-    - name: run puppet to get repos
-      become: yes
-      puppet:
-
+        role_action: mlnx
+      when:
+        - ansible_p1p1 is defined
+        - ansible_p1p1.module is search('mlx')
     - name: Update firmware
       include_role:
         name: firmware
@@ -132,18 +116,55 @@
         loop_var: role_action
       when: ansible_virtualization_role == 'host'
       tags: dell_firmware
-    - name: Update mlnx
-      include_role:
-        name: firmware
-      vars:
-        role_action: mlnx
-      when:
-        - ansible_p1p1 is defined
-        - ansible_p1p1.module is search('mlx')
-    #-- bcache antics...
 
-    - name: flush handlers to force reboot
+    - name: flush handlers
       meta: flush_handlers
+
+    - name: cleanup xenial sources
+      include_role:
+        name: pacman
+      with_items:
+        - purge_sources
+      loop_control:
+        loop_var: role_action
+      vars:
+        release: xenial
+
+    - name: routine node config and update puppet
+      include_role:
+        name: baremetal
+      with_items:
+        - pre_config
+        - reinstall
+      loop_control:
+        loop_var: role_action
+
+    #-- move into drl role-action
+    - name: enable puppet
+      become: yes
+      command: /opt/puppetlabs/bin/puppet agent --enable
+
+    - name: run puppet to get bionic repos
+      become: yes
+      puppet:
+      register: puppet_run_result
+      ignore_errors: yes
+
+    - name: start midolman
+      become: yes
+      systemd:
+        name: midolman
+        state: started
+      when: "Could not find init script for 'midolman' in puppet_run_result.stderr"
+
+    - name: post-do-release dist upgrade
+      include_role:
+        name: pacman
+      vars:
+        role_action: patch_seq
+      when: "Execution of '/usr/bin/apt-get in puppet_run_result.stderr"
+
+    #-- bcache antics...
 
 - name: postlude
   hosts: all
@@ -152,11 +173,12 @@
     - postlude
     - part_b
   tasks:
-    - name: start nova-compute
-      become: yes
-      systemd:
-        name: nova-compute
-        state: started
+    - name: system checks
+      include_role:
+        name: baremetal
+      vars:
+        role_action: check
+        node_type: 'hypervisor'
 
     - name: Test "{{ ansible_play_batch }}"
       jenkins_build:
@@ -170,6 +192,7 @@
         url: "{{ jenkins_server }}"
       loop: "{{ ansible_play_batch }}"
       run_once: true
+      tags: tempest
       delegate_to: localhost
 
     - name: start and unlock vms
@@ -180,11 +203,3 @@
         - hype_start
       loop_control:
         loop_var: role_action
-    - name: start puppet
-      become: yes
-      command: /opt/puppetlabs/bin/puppet agent --enable
-    - name: start nova-compute
-      become: yes
-      systemd:
-        name: nova-compute
-        state: started

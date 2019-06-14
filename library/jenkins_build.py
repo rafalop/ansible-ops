@@ -193,12 +193,13 @@ class JenkinsBuild:
         if build_status['result'] is None:
             sleep(10)
             self.get_result()
-        elif build_status['result'] is not "SUCCESS":
-            result['failed'] = True
-            result['build_info'] = build_status
         else:
-            result['changed'] = True
-            result['build_info'] = build_status
+            if build_status['result'] is "SUCCESS":
+                result['changed'] = True
+                result['build_info'] = build_status
+            else:
+                result['failed'] = True
+                result['build_info'] = build_status
 
         return result
 

@@ -1,0 +1,5 @@
+- name: inner loop
+  debug:
+    var: item
+  loop: groups['monash-test-compute']
+  when: hostvars[outer_item]['tempest_zone'] == hostvars[item]['tempest_zone']

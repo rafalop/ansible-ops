@@ -14,7 +14,8 @@
     - debug:
         var: return.stdout_lines
 
-    - name: notify reboot handler
-      reboot:
-        reboot_timeout: 3600
+    - name: calling reboot
+      debug:
+        msg: calling reboot
+      notify: firmware reboot
       when: "'Please reboot the system for update(s) to take effect' in return.stdout_lines"

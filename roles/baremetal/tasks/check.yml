@@ -1,0 +1,31 @@
+---
+- name: refresh facts
+  setup:
+
+- name: kernel version
+  debug:
+    var: ansible_kernel
+  when: ansible_distribution_version == '18.04'
+  failed_when: ansible_kernel is version(bionic_min_kernel, '<')
+
+- name: virt stack check
+  when: node_type == 'hypervisor' and ansible_distribution_version == '18.04'
+  block:
+    - name: nova-compute candidate
+      shell: apt-cache policy nova-compute | grep -e '^  Candidate' | awk '{print $2}'
+      register: nova_compute_candidate
+
+    - name: nova-compute installed
+      shell: apt-cache policy nova-compute | grep -e '^  Installed' | awk '{print $2}'
+      register: nova_compute_installed
+      failed_when: nova_compute_installed.stdout is version(nova_compute_candidate.stdout, 'ne')
+
+    - name: neutron-linuxbridge-agent candidate
+      shell: apt-cache policy neutron-linuxbridge-agent | grep -e '^  Candidate' | awk '{print $2}'
+      register: neutron-linuxbridge-agent_candidate
+
+    - name: neutron-linuxbridge-agent installed
+      shell: apt-cache policy neutron-linuxbridge-agent | grep -e '^  Installed' | awk '{print $2}'
+      register: neutron-linuxbridge-agent_installed
+      failed_when: neutron-linuxbridge-agent_installed.stdout is version(neutron-linuxbridge-agent_candidate.stdout, 'ne')
+
