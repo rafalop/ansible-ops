@@ -8,11 +8,27 @@
     autoremove:
   when: ansible_uptime_seconds > 86400
 
-- name: Upgrade all packages to the latest version
-  become: true
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  apt:
-    update_cache: yes
-    upgrade: dist
-    dpkg_options: 'force-confold,force-confdef'
+- name: Do dist-upgrade
+  block:
+    - name: Upgrade all packages to the latest version
+      become: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      apt:
+        update_cache: yes
+        upgrade: dist
+        dpkg_options: 'force-confold,force-confdef'
+      register: result
+
+  rescue:
+    - name: Upgrade w/ allow downgrades # noqa 303
+      become: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      command: |
+        apt-get -y \
+        -o Dpkg::Options::="--force-confdef" \
+        -o Dpkg::Options::="--force-confold" \
+        dist-upgrade \
+        --allow-downgrades
+      when: "'Packages were downgraded and -y was used without --allow-downgrades' in result.msg"

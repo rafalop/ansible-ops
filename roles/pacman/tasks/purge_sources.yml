@@ -1,5 +1,4 @@
 ---
-
 - name: find previous release sources
   find:
     paths: /etc/apt/sources.list.d/
@@ -22,6 +21,25 @@
     state: absent
   with_items: "{{ old_source }}"
   when: old_source is defined
+
+- name: purge srvadmin
+  become: true
+  apt:
+    name: "srvadmin*"
+    state: absent
+    purge: yes
+  when:
+    - "old_source is defined"
+    - "'dell' in old_source"
+
+- name: remove /opt/dell
+  become: true
+  file:
+    name: "/opt/dell"
+    state: absent
+  when:
+    - "old_source is defined"
+    - "'dell' in old_source"
 
 - name: find distUpgrade sources
   find:
