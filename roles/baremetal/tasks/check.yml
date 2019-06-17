@@ -22,10 +22,10 @@
 
     - name: neutron-linuxbridge-agent candidate
       shell: apt-cache policy neutron-linuxbridge-agent | grep -e '^  Candidate' | awk '{print $2}'
-      register: neutron-linuxbridge-agent_candidate
+      register: neutron_linuxbridge_agent_candidate
 
     - name: neutron-linuxbridge-agent installed
       shell: apt-cache policy neutron-linuxbridge-agent | grep -e '^  Installed' | awk '{print $2}'
-      register: neutron-linuxbridge-agent_installed
-      failed_when: neutron-linuxbridge-agent_installed.stdout is version(neutron-linuxbridge-agent_candidate.stdout, 'ne')
+      register: neutron_linuxbridge_agent_installed
+      failed_when: neutron_linuxbridge_agent_installed.stdout is version(neutron_linuxbridge_agent_candidate.stdout, 'ne')
 
