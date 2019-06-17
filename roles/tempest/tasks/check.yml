@@ -1,0 +1,13 @@
+
+- name: run tempest compute host check
+  delegate_to: localhost
+  jenkins_build:
+    name: "tempest-compute-host-check"
+    args:
+      CLOUD: "production"
+      AVAILABILITY_ZONE: "{{ cell_name }}"
+      HOST: "{{ item }}"
+    user: "{{ jenkins_username }}"
+    password: "{{ jenkins_password }}"
+    url: "{{ jenkins_server }}"
+  loop: "{{ ansible_play_batch }}"

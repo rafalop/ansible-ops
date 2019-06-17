@@ -194,7 +194,7 @@ class JenkinsBuild:
             sleep(10)
             self.get_result()
         else:
-            if build_status['result'] is "SUCCESS":
+            if build_status['result'] == "SUCCESS":
                 result['changed'] = True
                 result['build_info'] = build_status
             else:
