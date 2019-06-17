@@ -1,0 +1,17 @@
+---
+- name: refresh facts
+  setup:
+
+- name: run checks
+  block:
+    - name: check boot space
+      assert:
+        that:
+          - item.size_available > 100000000
+      with_items: "{{ ansible_mounts }}"
+      when: item.mount == '/boot'
+      register: disk_free
+
+  rescue:
+    - name: end play to manually fix hosts
+      meta: end_play

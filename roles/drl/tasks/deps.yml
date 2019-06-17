@@ -10,6 +10,9 @@
         name: update-manager-core
         state: latest
 
+- name: system checks
+  include: system_check.yml
+
 - name: stat target
   stat:
     path: /var/run/reboot-required

@@ -1,11 +1,11 @@
 ---
 
-#- name: do-release-upgrade # noqa 301 305
-#  shell: nohup do-release-upgrade -f DistUpgradeViewNonInteractive </dev/null >/dev/null 2>&1 &
+- name: do-release-upgrade # noqa 301 305
+  shell: nohup do-release-upgrade -f DistUpgradeViewNonInteractive </dev/null
 #  async: 2700
 #  poll: 0
-#  register: drl_task
-#
+  register: drl_task
+
 #- name: Delay before checking pid
 #  pause:
 #    prompt: Delay before checking pid
@@ -17,11 +17,12 @@
 #  register: pid
 #
 
-- name: do-release-upgrade
-  script: drl.sh
-  become: yes
-  register: drl
+#- name: do-release-upgrade
+#  script: drl.sh
+#  become: yes
+#  register: drl
 
 - name: reboot
+  become: yes
   reboot:
     reboot_timeout: 1800
