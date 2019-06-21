@@ -10,4 +10,4 @@
     user: "{{ jenkins_username }}"
     password: "{{ jenkins_password }}"
     url: "{{ jenkins_server }}"
-  loop: "{{ ansible_play_batch }}"
+  loop: "{{ tempest_test_hosts }}"
