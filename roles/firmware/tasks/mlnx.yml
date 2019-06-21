@@ -21,4 +21,6 @@
       command: ./mlnxofedinstall --add-kernel-support --force --skip-repo --all --without-mlnx-nvme
       args:
         chdir: "/tmp/{{ mlnx_ofed_file | splitext | first }}"
-      notify: firmware reboot
+      notify:
+        - install nova-compute
+        - firmware reboot

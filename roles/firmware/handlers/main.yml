@@ -5,3 +5,9 @@
   become: yes
   reboot:
     reboot_timeout: 3600
+
+- name: install nova-compute
+  become: yes
+  apt:
+    name: nova-compute
+    state: present
