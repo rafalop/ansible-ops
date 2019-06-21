@@ -6,22 +6,6 @@
 #  poll: 0
   register: drl_task
 
-#- name: Delay before checking pid
-#  pause:
-#    prompt: Delay before checking pid
-#    seconds: 270
-#
-#- name: check
-#  include_tasks: check.yml
-#  until: drl_status.finished
-#  register: pid
-#
-
-#- name: do-release-upgrade
-#  script: drl.sh
-#  become: yes
-#  register: drl
-
 - name: reboot
   become: yes
   reboot:

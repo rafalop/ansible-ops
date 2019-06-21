@@ -1,0 +1,30 @@
+---
+- name: get a list of installed kernels
+  find:
+    paths: /boot/
+    patterns: "initrd.img-*"
+  register: initrd
+
+- set_fact: initrd_paths="{{ initrd.files | map(attribute='path') | list }}"
+- set_fact: initrd_files="{{ initrd_paths | map('basename') | list }}"
+- set_fact: old_initrd_files="{{ initrd_files | map('regex_search', '^.*\\.old-dkms$') | list + [ansible_kernel] }}"
+- set_fact: obsolete_kernels="{{ initrd_files | difference(old_initrd_files) | map('regex_replace', 'initrd\\.img-','') | list }}"
+
+
+- name: removed old initrd_files
+  become: yes
+  command: update-initrd -d -k  "{{ item }}"
+  loop: "{{ obsolete_kernels }}"
+  ignore_errors: yes
+  register: return
+
+- debug:
+    var: return
+
+- name: purge old kernels
+  become: yes
+  apt:
+    name: linux-image-"{{ item }}"
+    state: absent
+    purge: yes
+  loop: "{{ obsolete_kernels }}"

@@ -10,10 +10,7 @@
         name: update-manager-core
         state: latest
 
-- name: system checks
-  include: system_check.yml
-
-- name: stat target
+- name: is reboot required?
   stat:
     path: /var/run/reboot-required
   register: stat_result
@@ -23,3 +20,6 @@
   reboot:
     reboot_timeout: 1800
   when: stat_result.stat.exists
+
+- name: system checks
+  include: system_check.yml

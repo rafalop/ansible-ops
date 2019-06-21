@@ -2,16 +2,28 @@
 - name: refresh facts
   setup:
 
-- name: run checks
-  block:
-    - name: check boot space
-      assert:
-        that:
-          - item.size_available > 100000000
-      with_items: "{{ ansible_mounts }}"
-      when: item.mount == '/boot'
-      register: disk_free
+- name: check boot space
+  assert:
+    that:
+      - item.size_available > 100000000
+  with_items: "{{ ansible_mounts }}"
+  when: item.mount == '/boot'
+  register: assertion
+  ignore_errors: yes
 
-  rescue:
-    - name: end play to manually fix hosts
-      meta: end_play
+- name: fix boot part
+  include_tasks: boot_part_fix.yml
+  when:
+    - assertion.failed is defined
+    - assertion.failed
+
+- name: check boot space again
+  assert:
+    that:
+      - item.size_available > 100000000
+  with_items: "{{ ansible_mounts }}"
+  register: assertion
+  when:
+    - item.mount == '/boot'
+    - assertion.failed is defined
+    - assertion.failed
