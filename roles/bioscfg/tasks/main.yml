@@ -1,3 +1,3 @@
 ---
-# tasks file for roles/oob
+# tasks file for roles/bioscfg
 - include_tasks: "{{ role_action }}.yml"

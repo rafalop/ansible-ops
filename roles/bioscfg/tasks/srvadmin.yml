@@ -1,0 +1,21 @@
+- name: Enable "{{ item.key }}"
+  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute="{{ item.key }}" setting="{{ item.value }}"
+  loop: "{{ lookup('dict', bios_config) }}"
+
+#- name: Enable HT
+#  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute=LogicalProc setting=Enabled
+#  when: node_type != 'hypervisor_secure'
+#
+#- name: disable HT
+#  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute=LogicalProc setting=Disabled
+#  when: node_type == 'hypervisor_secure'
+#
+#- name: Enable SRIOV
+#  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute=SriovGlobalEnable setting=Enabled
+#  when: node_type != 'hypervisor_secure'
+#
+#- name: Enable VT-x
+#  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute=ProcVirtualization setting=Enabled
+#
+#- name: Enable Power Profile
+#  command: /opt/dell/srvadmin/bin/omconfig chassis biossetup attribute=EnergyPerformanceBias setting=Enabled

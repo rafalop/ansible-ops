@@ -1,0 +1,7 @@
+---
+# defaults file for roles/oob
+bios_config:
+  LogicalProc: Enabled
+  SriovGlobalEnable: Enabled
+  ProcVirtualization: Enabled
+  EnergyPerformanceBias: Enabled

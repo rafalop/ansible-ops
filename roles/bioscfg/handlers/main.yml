@@ -1,5 +1,5 @@
 ---
-# handlers file for roles/oob
+# handlers file for roles/bioscfg
 
 # requires ansible 2.8
 #- name: Create bios config job

@@ -1,0 +1,65 @@
+---
+- name: Reset iDRAC
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset \
+    --noproxy '*' \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType":"GracefulRestart"}'
+
+- name: Delay before checking iDRAC
+  pause:
+    prompt: Delay before checking iDRAC
+    seconds: 30
+
+- name: Wait for iDRAC to return
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Managers/iDRAC.Embedded.1 \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    --noproxy '*' \
+    | jq .Status.Health
+
+  register: result
+  until: result.stdout.find("OK") != -1
+  retries: 30
+  delay: 10
+
+# Doesn't appear to be a redfish api for this.
+- name: Delete job queue
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    racadm \
+    -r "{{ redfish.baseuri }}" \
+    -u "{{ redfish.user }}"  \
+    -p "{{ redfish.password }}" \
+    jobqueue delete -i JID_CLEARALL_FORCE
+
+- name: Set "{{ item.key }}"
+  connection: local
+  redfish_config:
+    category: Systems
+    command: SetBiosAttributes
+    bios_attr_name: SriovGlobalEnable
+    bios_attr_value: Enabled
+    baseuri: "{{ redfish.baseuri }}"
+    user: "{{ redfish.user }}"
+    password: "{{ redfish.password }}"
+  register: bios_attr
+  delegate_to: "{{ redfish.oob_bastion }}"
+  loop: "{{ lookup('dict', bios_config) }}"
+
+- name: schedule bios setting update
+  command: /bin/true
+  notify: Create bios config job
+  when: bios_attr.changed
+
+- name: reboot system
+  delegate_to: "{{ redfish.oob_bastion }}"
+  shell: |
+    curl https://{{ redfish.baseuri }}/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset \
+    --noproxy '*' \
+    -k -s -u {{ redfish.user }}:{{ redfish.password }} \
+    -H "Content-Type: application/json" \
+    -d '{"ResetType":"GracefulRestart"}'
