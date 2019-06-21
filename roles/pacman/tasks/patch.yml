@@ -22,6 +22,8 @@
       become: true
       environment:
         DEBIAN_FRONTEND: noninteractive
+      args:
+        warn: False
       command: |
         apt-get -y \
         -o Dpkg::Options::="--force-confdef" \

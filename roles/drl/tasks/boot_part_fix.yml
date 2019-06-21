@@ -5,10 +5,10 @@
     patterns: "initrd.img-*"
   register: initrd
 
-- set_fact: initrd_paths="{{ initrd.files | map(attribute='path') | list }}"
-- set_fact: initrd_files="{{ initrd_paths | map('basename') | list }}"
-- set_fact: old_initrd_files="{{ initrd_files | map('regex_search', '^.*\\.old-dkms$') | list + [ansible_kernel] }}"
-- set_fact: obsolete_kernels="{{ initrd_files | difference(old_initrd_files) | map('regex_replace', 'initrd\\.img-','') | list }}"
+- set_fact: initrd_paths="{{ initrd.files | map(attribute='path') | list }}" # noqa 502
+- set_fact: initrd_files="{{ initrd_paths | map('basename') | list }}" # noqa 502
+- set_fact: old_initrd_files="{{ initrd_files | map('regex_search', '^.*\\.old-dkms$') | list + [ansible_kernel] }}" # noqa 502
+- set_fact: obsolete_kernels="{{ initrd_files | difference(old_initrd_files) | map('regex_replace', 'initrd\\.img-','') | list }}" # noqa 502
 
 
 - name: removed old initrd_files

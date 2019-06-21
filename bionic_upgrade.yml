@@ -1,19 +1,17 @@
 ---
 - name: prelude
-  hosts: all
+  hosts: bionic
   environment: "{{ os_admin }}"
+  any_errors_fatal: true
   tags:
     - prelude
     - part_a
   tasks:
-    #- WIP
-    #- name: notify users
-    #  include_role:
-    #    name: hvmnd
-    #  vars:
-    #    hivemind_hosts: "{{ ansible_play_batch }}"
-    #  run_once: true
-    #  tags: comms
+    - name: check not already upgrade
+      assert:
+        that:
+          - ansible_distribution_version != '18.04'
+
     - name: stop and lock vms
       include_role:
         name: cloudman
@@ -33,11 +31,12 @@
         state: stopped
 
 - name: hypervisor xenial pre drl
-  hosts: all
+  hosts: bionic
   tags:
     - pre-drl
     - part_a
   environment: "{{ proxy_env }}"
+  any_errors_fatal: true
   tasks:
     - name: remove i386 arch, purge prefs
       include_role:
@@ -76,29 +75,31 @@
         name: pacman
       vars:
         role_action: patch_seq
-    #-- bchache antics...
 
 - name: hypervisor xenial drl bionic
-  hosts: all
+  hosts: bionic
   tags: drl
   environment: "{{ proxy_env }}"
+  any_errors_fatal: true
   tasks:
     - name: drl
       include_role:
         name: drl
 
 - name: hypervisor bionic post drl
-  hosts: all
+  hosts: bionic
   environment: "{{ proxy_env }}"
+  any_errors_fatal: true
   tags:
     - post-drl
     - part_b
   tasks:
     - name: gather bionic facts
       setup:
+      failed_when: ansible_distribution_version != '18.04'
+
     - name: Update mlnx
-      # will uninstall nova compute if it runs
-      # requires bionc repos
+      # will uninstall nova compute if it runs & requires bionic repos
       include_role:
         name: firmware
       vars:
@@ -106,6 +107,9 @@
       when:
         - ansible_p1p1 is defined
         - ansible_p1p1.module is search('mlx')
+      tags:
+        - firmware
+        - mlnx_firmware
     - name: Update firmware
       include_role:
         name: firmware
@@ -115,8 +119,9 @@
       loop_control:
         loop_var: role_action
       when: ansible_virtualization_role == 'host'
-      tags: dell_firmware
-
+      tags:
+        - firmware
+        - dell_firmware
     - name: flush handlers
       meta: flush_handlers
 
@@ -139,7 +144,6 @@
       loop_control:
         loop_var: role_action
 
-    #-- move into drl role-action
     - name: enable puppet
       become: yes
       command: /opt/puppetlabs/bin/puppet agent --enable
@@ -150,25 +154,25 @@
       register: puppet_run_result
       ignore_errors: yes
 
-    - name: start midolman
-      become: yes
-      systemd:
-        name: midolman
-        state: started
-      when: "Could not find init script for 'midolman' in puppet_run_result.stderr"
-
     - name: post-do-release dist upgrade
       include_role:
         name: pacman
       vars:
         role_action: patch_seq
-      when: "Execution of '/usr/bin/apt-get in puppet_run_result.stderr"
+      when: puppet_run_result.failed
 
-    #-- bcache antics...
+    #- install & start midolman
+    #- install & start nova-compute
+    - name: run puppet
+      become: yes
+      puppet:
+      register: puppet_run_result
+      when: puppet_run_result.failed
 
 - name: postlude
-  hosts: all
+  hosts: bionic
   environment: "{{ os_admin }}"
+  any_errors_fatal: true
   tags:
     - postlude
     - part_b
@@ -181,19 +185,13 @@
         node_type: 'hypervisor'
 
     - name: Test "{{ ansible_play_batch }}"
-      jenkins_build:
-        name: "tempest-compute-host-check"
-        args:
-          CLOUD: "production"
-          AVAILABILITY_ZONE: "{{ cell_name }}"
-          HOST: "{{ item }}"
-        user: "{{ jenkins_username }}"
-        password: "{{ jenkins_password }}"
-        url: "{{ jenkins_server }}"
-      loop: "{{ ansible_play_batch }}"
+      include_role:
+        name: tempest
+      vars:
+        role_action: check
+        tempest_test_hosts: "{{ ansible_play_batch }}"
       run_once: true
       tags: tempest
-      delegate_to: localhost
 
     - name: start and unlock vms
       include_role:
