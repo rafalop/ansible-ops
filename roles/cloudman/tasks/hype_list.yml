@@ -7,16 +7,15 @@
 - name: write to localhost
   block:
     - name: stat target
-      file:
+      stat:
         path: "_hypervisor_list/{{ inventory_hostname }}.txt"
-      register: stat
-    - debug:
-        var: stat
+      register: stat_result
+      delegate_to: localhost
 
-  rescue:
     - name: write file
       copy:
         content: "{{ result.stdout }}"
         dest: "_hypervisor_list/{{ inventory_hostname }}.txt"
         force: yes
       delegate_to: localhost
+      when: not stat_result.stat.exists
