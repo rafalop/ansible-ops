@@ -31,6 +31,7 @@
   when:
     - "old_source is defined"
     - "'dell' in old_source"
+  ignore_errors: yes
 
 - name: remove /opt/dell
   become: true

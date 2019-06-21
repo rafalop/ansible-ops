@@ -5,20 +5,17 @@
 - name: Autoremove if uptime is gt 24 hours
   become: true
   apt:
-    autoremove:
+    autoremove: yes
   when: ansible_uptime_seconds > 86400
 
 - name: Do dist-upgrade
   block:
     - name: Upgrade all packages to the latest version
       become: true
-      environment:
-        DEBIAN_FRONTEND: noninteractive
       apt:
         update_cache: yes
         upgrade: dist
         dpkg_options: 'force-confold,force-confdef'
-      register: result
 
   rescue:
     - name: Upgrade w/ allow downgrades # noqa 303
@@ -31,4 +28,4 @@
         -o Dpkg::Options::="--force-confold" \
         dist-upgrade \
         --allow-downgrades
-      when: "'Packages were downgraded and -y was used without --allow-downgrades' in result.msg"
+      when: "'Packages were downgraded and -y was used without --allow-downgrades' in ansible_failed_result.msg"

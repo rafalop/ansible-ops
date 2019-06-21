@@ -5,8 +5,10 @@
     - name: Remove "{{ arch }}" packages
       apt:
         name: "*.*:{{ arch }}"
+        state: absent
         purge: yes
       ignore_errors: True
+
     - name: remove "{{ arch }}" architecture
       command: "dpkg --remove-architecture {{ arch }}"
     - name: apt cleanup
