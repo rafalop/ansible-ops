@@ -1,2 +1,6 @@
 ---
 # handlers file for roles/drl
+- name: drl reboot
+  become: yes
+  reboot:
+    reboot_timeout: 1800
